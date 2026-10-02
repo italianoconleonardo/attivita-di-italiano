@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Storie in Italiano - Leggi ed Esercitati</title>
+    <style>
+        :root {
+            --bg-color: #f0f2f5;
+            --card-bg: #ffffff;
+            --primary-color: #008c45; /* Verde Bandiera Italiana */
+            --accent-color: #cd212a;  /* Rosso Bandiera Italiana */
+            --text-color: #1f2937;
+            --correct-color: #10b981;
+            --incorrect-color: #ef4444;
+            --border-radius: 16px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 12px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        /* Selettore Personaggi (Scroll Orizzontale) */
+        .story-selector {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .story-selector::-webkit-scrollbar {
+            display: none;
+        }
+
+        .nav-btn {
+            flex: 0 0 auto;
+            padding: 10px 18px;
+            border: none;
+            background-color: #e5e7eb;
+            color: #4b5563;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 10px rgba(0, 140, 69, 0.3);
+        }
+
+        /* Cards Storie ed Esercizi */
+        .card {
+            background-color: var(--card-bg);
+            padding: 20px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .story-content {
+            display: none;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .story-content.active {
+            display: flex;
+        }
+
+        .character-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background-color: #e8f5e9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            border: 2px solid #c8e6c9;
+        }
+
+        .character-info h2 {
+            margin: 0;
+            font-size: 1.2rem;
+            color: #111827;
+        }
+
+        .character-info p {
+            margin: 3px 0 0 0;
+            color: #6b7280;
+            font-size: 0.88rem;
+        }
+
+        .text-box {
+            line-height: 1.65;
+            font-size: 1rem;
+            background-color: #f9fafb;
+            padding: 16px;
+            border-left: 5px solid var(--primary-color);
+            border-radius: 8px;
+            color: #374151;
+        }
+
+        .exercise-section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #111827;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .question {
+            margin-top: 12px;
+            background: #fff;
+            padding: 14px;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+        }
+
+        .question p {
+            margin: 0 0 12px 0;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #1f2937;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .option-btn {
+            background-color: #f3f4f6;
+            border: 2px solid transparent;
+            padding: 12px 14px;
+            border-radius: 10px;
+            font-size: 0.92rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+            box-sizing: border-box;
+            color: #374151;
+        }
+
+        .option-btn:active {
+            transform: scale(0.98);
+        }
+
+        .option-btn.correct {
+            background-color: #d1fae5;
+            border-color: var(--correct-color);
+            color: #065f46;
+            font-weight: bold;
+        }
+
+        .option-btn.incorrect {
+            background-color: #fee2e2;
+            border-color: var(--incorrect-color);
+            color: #991b1b;
+        }
+
+        .feedback {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            display: none;
+        }
+
+        .feedback.visible { display: block; }
+        .feedback.correct { color: var(--correct-color); }
+        .feedback.incorrect { color: var(--incorrect-color); }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+
+    <!-- Selettore Orizzontale Personaggi -->
+    <div class="story-selector">
+        <button class="nav-btn active" onclick="showStory(1)">1. Matteo 👨‍🍳</button>
+        <button class="nav-btn" onclick="showStory(2)">2. Giulia 📸</button>
+        <button class="nav-btn" onclick="showStory(3)">3. Alessandro 🏛️</button>
+        <button class="nav-btn" onclick="showStory(4)">4. Sofia 🔬</button>
+        <button class="nav-btn" onclick="showStory(5)">5. Lorenzo ⛵</button>
+    </div>
+
+    <!-- PERSONAGGIO 1 -->
+    <div id="story-1" class="story-content active">
+        <div class="card">
+            <div class="character-header">
+                <div class="avatar">👨‍🍳</div>
+                <div class="character-info">
+                    <h2>Matteo da Napoli</h2>
+                    <p>Cuoco • Napoli 🍕</p>
+                </div>
+            </div>
+            <div class="text-box">
+                Ciao a tutti! Mi chiamo Matteo, ho trentadue anni e vivo a Napoli. Lavoro come cuoco in un piccolo ristorante tradizionale nel centro storico. Ogni mattina vado al mercato locale per comprare ingredienti freschi: pomodori, mozzarella e basilico. Amo preparare la pizza e i piatti della tradizione campana per i miei clienti. L'anno scorso ho fatto un viaggio bellissimo in Spagna. Ho visitato Barcellona e Madrid, dove ho assaggiato molte tapas deliziose e ho incontrato chef locali. Durante il weekend non lavoro, quindi preferisco rilassarmi al mare o fare passeggiate lungo il magnifico lungomare di Napoli.
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="exercise-section-title">✏️ Esercizi di Comprensione</div>
+
+            <div class="question" data-correct="1">
+                <p>1. Che cosa fa Matteo ogni mattina al mercato?</p>
+                <div class="options">
+                    <button class="option-btn" onclick="checkAnswer(this, 0)">Prende un caffè con gli amici.</button>
+                    <button class="option-btn" onclick="checkAnswer(this, 1)">Compra ingredienti freschi per il ristorante.</button>
+                    <button class="option-btn" onclick="checkAnswer(this, 2)">Vende verdura e frutta fresca.</button>
+                </div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question" data-correct="2">
+                <p>2. Dove è stato Matteo l'anno scorso?</p>
+                <div class="options">
+                    <button class="option-btn" onclick="checkAnswer(this, 0)">In Francia.</button>
+                    <button class="option-btn" onclick="checkAnswer(this, 1)">In Grecia.</button>
+                    <button class="option-btn" onclick="checkAnswer(this, 2)">In Spagna.</button>
+                </div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question" data-correct="0">
+                <p>3. Cosa preferisce fare Matteo durante il weekend?</p>
+                <div class="options">
+                    <button class="option-btn" onclick="checkAnswer(this, 0)">Rilassarsi al mare o passeggiare.</button>
+                    <button class="option-btn" onclick="checkAnswer(this, 1)">Lavorare nel suo ristorante.</button>
+                    <button class="option-btn" onclick="checkAnswer(this, 2)">Cucinare per i suoi colleghi.</button>
+                </div>
+                <div class="feedback"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PERSONAGGIO 2 -->
+    <div id="story-2" class="story-content">
+        <div class="card">
+            <div class="character-header">
+                <div class="avatar">📸</div>
+                <div class="character-info">
+                    <h2>Giulia da Milano</h2>
+                    <p>Fotografa • Milano 🏙️</p>
+                </div>
+            </div>
+            <div class="text-box">
+                Buongiorno! Sono Giulia e abito a Milano. Sono una fotografa professionista e lavoro per varie riviste di moda e di viaggi. Il mio lavoro è molto dinamico e stimolante: ogni giorno scatto fotografie, modifico le immagini al computer o organizzo nuovi servizi fotografici. Due mesi fa ho viaggiato in Giappone per un importante progetto culturale. Ho visitato Tokyo e Kyoto, ho scattato tantissime foto ai templi antichi e ho provato il sushi autentico. È stata un'esperienza indimenticabile! Nel tempo libero mi piace leggere romanzi, fare yoga e organizzare cene con i miei amici a casa.
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="exercise-section-title">✏️ Esercizi di Comprensione</div>
+
+            <div class="question" data-correct="2">
+                <p>1. Qual è la professione di Giulia?</p>
+                <div class="options">
+                    <button class="option-btn" onclick="checkAnswer(this, 0)">Insegnante di yoga.</button>
+                    <button class="option-btn" onclick="checkAnswer(this, 1)">Scrittrice di romanzi.</button>
+                    <button class="option-btn" onclick="checkAnswer(this, 2)">Fotografa professionista.</button>
+                </div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question" data-correct="0">
+                <p>2. Dove è andata Giulia due mesi fa per lavoro?</p>
+                <div class="options">
+                    <button class="option-btn" onclick="checkAnswer(this, 0)">In Giappone.</button>
+                    <button class="option-btn" onclick="checkAnswer(this, 1)">Negli Stati Uniti.</button>
+                    <button class="option-btn" onclick="checkAnswer(this, 2)">In Inghilterra.</button>
+                </div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question" data-correct="1">
+                <p>3. Che cosa le piace fare nel tempo libero?</p>
+                <div class="options">
+                    <button class="option-btn" onclick="checkAnswer(this, 0)">Andare al cinema da sola.</button>
+                    <button class="option-btn" onclick="checkAnswer(this, 1)">Leggere, fare yoga e cenare con gli amici.</button>
+                    <button class="option-btn" onclick="checkAnswer(this, 2)">Studiare nuove lingue straniere.</button>
+                </div>
+                <div class="feedback"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PERSONAGGIO 3 -->
+    <div id="story-3" class="story-content">
+        <div class="card">
+            <div class="character-header">
+                <div class="avatar">🏛️</div>
+                <div class="character-info">
+                    <h2>Alessandro da Roma</h2>
+                    <p>Guida Turistica • Roma 🏛️</p>
+                </div>
+            </div>
+            <div class="text-box">
+                Salve! Mi chiamo Alessandro e vivo a Roma. Lavoro come guida turistica e accompagno i visitatori stranieri alla scoperta dei monumenti più famosi, come il Colosseo e i Musei Vaticani. Parlo inglese e spagnolo e amo spiegare la storia della mia città. L'estate scorsa ho deciso di fare una vacanza avventurosa: ho fatto un viaggio in Perù! Ho camminato per tre giorni sulle montagne e finalmente ho visto il meraviglioso sito di Machu Picchu. È stato un momento davvero fantastico. La sera, a Roma, mi piace uscire, bere un aperitivo nel quartiere Trastevere e suonare la chitarra.
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="exercise-section-title">✏️ Esercizi di Comprensione</div>
+
+            <div class="question" data-correct="0">
+                <p>1. Quali lingue parla Alessandro oltre all'italiano?</p>
+                <div class="options">
+                    <button class="option-btn" onclick="checkAnswer(this, 0)">Inglese e spagnolo.</button>
+                    <button class="option-btn" onclick="checkAnswer(this, 1)">Francese e tedesco.</button>
+                    <button class="option-btn" onclick="checkAnswer(this, 2)">Inglese e portoghese.</button>
+                </div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question" data-correct="1">
+                <p>2. Che cosa ha visitato Alessandro in Perù?</p>
+                <div class="options">
+                    <button class="option-btn" onclick="checkAnswer(this, 0)">Le Piramidi.</button>
+                    <button class="option-btn" onclick="checkAnswer(this, 1)">Il sito di Machu Picchu.</button>
+                    <button class="option-btn" onclick="checkAnswer(this, 2)">La foresta Amazzonica.</button>
+                </div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question" data-correct="2">
+                <p>3. Cosa fa Alessandro la sera quando si trova a Roma?</p>
+                <div class="options">
+                    <button class="option-btn" onclick="checkAnswer(this, 0)">Prepara da mangiare per i turisti.</button>
+                    <button class="option-btn" onclick="checkAnswer(this, 1)">Guarda documentari sulla storia antica.</button>
+                    <button class="option-btn" onclick="checkAnswer(this, 2)">Prende un aperitivo e suona la chitarra.</button>
+                </div>
+                <div class="feedback"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PERSONAGGIO 4 -->
+    <div id="story-4" class="story-content">
+        <div class="card">
+            <div class="character-header">
+                <div class="avatar">🔬</div>
+                <div class="character-info">
+                    <h2>Sofia da Firenze</h2>
+                    <p>Ricercatrice • Firenze ⚜️</p>
+                </div>
+            </div>
+            <div class="text-box">
+                Ciao! Sono Sofia, ho ventinove anni e vivo a Firenze. Lavoro come ricercatrice di biologia all'università. Passo molte ore in laboratorio per studiare le piante e la natura. È un lavoro impegnativo, ma mi appassiona molto. Il mese scorso ho partecipato a un importante convegno scientifico a Berlino. In quell'occasione ho presentato il mio progetto di ricerca e ho ascoltato molte conferenze interessanti. Ho anche avuto il tempo di esplorare la città e visitare alcuni musei d'arte contemporanea. Quando sono a casa a Firenze, mi piace correre nei parchi e cucinare dolci per la mia famiglia.
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="exercise-section-title">✏️ Esercizi di Comprensione</div>
+
+            <div class="question" data-correct="1">
+                <p>1. Dove lavora Sofia?</p>
+                <div class="options">
+                    <button class="option-btn" onclick="checkAnswer(this, 0)">In un ospedale privato.</button>
+                    <button class="option-btn" onclick="checkAnswer(this, 1)">In un laboratorio universitario.</button>
+                    <button class="option-btn" onclick="checkAnswer(this, 2)">In una scuola superiore.</button>
+                </div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question" data-correct="2">
+                <p>2. Perché Sofia si è recata a Berlino il mese scorso?</p>
+                <div class="options">
+                    <button class="option-btn" onclick="checkAnswer(this, 0)">Per fare una vacanza con la famiglia.</button>
+                    <button class="option-btn" onclick="checkAnswer(this, 1)">Per imparare la lingua tedesca.</button>
+                    <button class="option-btn" onclick="checkAnswer(this, 2)">Per partecipare a un convegno scientifico.</button>
+                </div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question" data-correct="0">
+                <p>3. Quali sono gli hobby di Sofia a Firenze?</p>
+                <div class="options">
+                    <button class="option-btn" onclick="checkAnswer(this, 0)">Correre nei parchi e cucinare dolci.</button>
+                    <button class="option-btn" onclick="checkAnswer(this, 1)">Suonare il pianoforte e dipingere.</button>
+                    <button class="option-btn" onclick="checkAnswer(this, 2)">Andare in bicicletta e nuotare.</button>
+                </div>
+                <div class="feedback"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PERSONAGGIO 5 -->
+    <div id="story-5" class="story-content">
+        <div class="card">
+            <div class="character-header">
+                <div class="avatar">⛵</div>
+                <div class="character-info">
+                    <h2>Lorenzo da Genova</h2>
+                    <p>Ingegnere Navale • Genova 🌊</p>
+                </div>
+            </div>
+            <div class="text-box">
+                Ciao a tutti! Mi chiamo Lorenzo e abito a Genova, una città bellissima vicino al mare. Lavoro come ingegnere navale e me ne occupo nel cantiere della città, dove progetto e controllo la costruzione di nuove barche e navi. Questo lavoro richiede molta precisione e attenzione. Tre settimane fa sono andato in Grecia per lavoro e vacanza. Ho noleggiato una barca a vela e ho navigato tra le isole Cicladi per sette giorni. È stato incredibile respirare l'aria del mare! Durante la settimana, dopo il lavoro, mi piace fare canottaggio e guardare le partite di calcio con gli amici.
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="exercise-section-title">✏️ Esercizi di Comprensione</div>
+
+            <div class="question" data-correct="0">
+                <p>1. Di cosa si occupa Lorenzo nel suo lavoro?</p>
+                <div class="options">
+                    <button class="option-btn" onclick="checkAnswer(this, 0)">Progetta e controlla la costruzione di navi.</button>
+                    <button class="option-btn" onclick="checkAnswer(this, 1)">Guida i traghetti per i turisti.</button>
+                    <button class="option-btn" onclick="checkAnswer(this, 2)">Vende barche a vela al porto.</button>
+                </div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question" data-correct="1">
+                <p>2. Come ha esplorato le isole Cicladi in Grecia?</p>
+                <div class="options">
+                    <button class="option-btn" onclick="checkAnswer(this, 0)">In aereo.</button>
+                    <button class="option-btn" onclick="checkAnswer(this, 1)">In barca a vela.</button>
+                    <button class="option-btn" onclick="checkAnswer(this, 2)">In crociera.</button>
+                </div>
+                <div class="feedback"></div>
+            </div>
+
+            <div class="question" data-correct="2">
+                <p>3. Quale sport pratica Lorenzo dopo il lavoro?</p>
+                <div class="options">
+                    <button class="option-btn" onclick="checkAnswer(this, 0)">Nuoto libero.</button>
+                    <button class="option-btn" onclick="checkAnswer(this, 1)">Tennis.</button>
+                    <button class="option-btn" onclick="checkAnswer(this, 2)">Canottaggio.</button>
+                </div>
+                <div class="feedback"></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // Cambia la storia visualizzata
+    function showStory(storyNumber) {
+        const stories = document.querySelectorAll('.story-content');
+        stories.forEach(s => s.classList.remove('active'));
+
+        const buttons = document.querySelectorAll('.nav-btn');
+        buttons.forEach(b => b.classList.remove('active'));
+
+        document.getElementById(`story-${storyNumber}`).classList.add('active');
+        buttons[storyNumber - 1].classList.add('active');
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Verifica la risposta dell'utente
+    function checkAnswer(button, selectedIndex) {
+        const questionElement = button.closest('.question');
+        const correctIndex = parseInt(questionElement.getAttribute('data-correct'));
+        const options = questionElement.querySelectorAll('.option-btn');
+        const feedback = questionElement.querySelector('.feedback');
+
+        // Disabilita i bottoni della stessa domanda dopo la scelta
+        options.forEach(btn => btn.disabled = true);
+
+        if (selectedIndex === correctIndex) {
+            button.classList.add('correct');
+            feedback.textContent = "Esatto! Risposta corretta. 🎉";
+            feedback.className = "feedback visible correct";
+        } else {
+            button.classList.add('incorrect');
+            options[correctIndex].classList.add('correct');
+            feedback.textContent = "Sbagliato! Guarda la risposta evidenziata in verde. ❌";
+            feedback.className = "feedback visible incorrect";
+        }
+    }
+</script>
+
+</body>
+</html>
